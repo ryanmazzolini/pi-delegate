@@ -1,0 +1,48 @@
+{
+  "name": "@ryanmazzolini/pi-delegate",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Run Pi child agents in the background and manage them from an Agent Desk",
+  "keywords": [
+    "pi-package"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryanmazzolini/pi-delegate.git"
+  },
+  "homepage": "https://github.com/ryanmazzolini/pi-delegate#readme",
+  "bugs": {
+    "url": "https://github.com/ryanmazzolini/pi-delegate/issues"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "files": [
+    "extensions",
+    "!extensions/**/*.test.mjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "npm run typecheck && node --test"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.85.1",
+    "@earendil-works/pi-tui": "0.83.0",
+    "@types/node": "^24.0.0",
+    "typebox": "^1.1.38",
+    "typescript": "^5.9.3"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ]
+  }
+}
