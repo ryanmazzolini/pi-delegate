@@ -166,22 +166,29 @@ test("does not inject an event already present in the parent session", async () 
   assert.equal(await delivery.deliverAttention(run(), view, "child-1"), "delivered");
 });
 
-test("holds a late result after unrelated user input", async () => {
-  const held = [];
-  const delivery = createParentDelivery({
-    current: () => ({ sessionId: "parent-1", inputGeneration: 2, branchIds: ["leaf-1"] }),
-    send: () => assert.fail("must not send"),
-    onHeld: (_run, reason, metadata) => held.push({ reason, metadata }),
-  });
+for (const kind of ["result", "attention"]) {
+  test(`delivers ${kind} after follow-up input on the same branch`, async () => {
+    const sent = [];
+    const delivery = createParentDelivery({
+      current: () => ({ sessionId: "parent-1", inputGeneration: 2, branchIds: ["leaf-1", "follow-up-leaf"] }),
+      send: (content, details, metadata) => sent.push({ content, details, metadata }),
+      onHeld: () => assert.fail("must not hold a same-branch update"),
+    });
 
-  assert.equal(await delivery.deliver(run(1), view), "held:user_intervened");
-  assert.equal(held[0].reason, "user_intervened");
-  assert.equal(held[0].metadata.eventId, "run-1:result");
-});
+    const outcome = kind === "result"
+      ? await delivery.deliver(run(1), view)
+      : await delivery.deliverAttention(run(1), view, "child-1");
+
+    assert.equal(outcome, "delivered");
+    assert.equal(sent.length, 1);
+    assert.equal(sent[0].metadata.kind, kind);
+    assert.match(sent[0].content, kind === "result" ? /Evidence/ : /Which API/);
+  });
+}
 
 test("holds delivery after navigation to an unrelated branch in the same session", async () => {
   const delivery = createParentDelivery({
-    current: () => ({ sessionId: "parent-1", inputGeneration: 1, branchIds: ["ancestor-leaf", "different-leaf"] }),
+    current: () => ({ sessionId: "parent-1", inputGeneration: 2, branchIds: ["ancestor-leaf", "different-leaf"] }),
     send: () => assert.fail("must not send"),
   });
 
@@ -207,11 +214,17 @@ test("bounds the formatted aggregate delivery independently of its snapshot", as
   assert.match(content, /Delivery truncated/);
 });
 
-test("holds attention when the parent session changed", async () => {
-  const delivery = createParentDelivery({
-    current: () => ({ sessionId: "parent-2", inputGeneration: 1, branchIds: [] }),
-    send: () => assert.fail("must not send"),
-  });
+for (const kind of ["result", "attention"]) {
+  test(`holds ${kind} when the parent session changed`, async () => {
+    const delivery = createParentDelivery({
+      current: () => ({ sessionId: "parent-2", inputGeneration: 2, branchIds: ["leaf-1"] }),
+      send: () => assert.fail("must not send"),
+    });
 
-  assert.equal(await delivery.deliverAttention(run(), view, "child-1"), "held:session_changed");
-});
+    const outcome = kind === "result"
+      ? await delivery.deliver(run(), view)
+      : await delivery.deliverAttention(run(), view, "child-1");
+
+    assert.equal(outcome, "held:session_changed");
+  });
+}

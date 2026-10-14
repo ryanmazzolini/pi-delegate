@@ -22,7 +22,7 @@ Needs Node.js 24 or newer, and Git for worktrees. Tested with Pi 0.85.1 and 1.0.
 
 ## Results
 
-When agents finish, their results are posted to the conversation and Pi takes a turn. If you've sent a message since, Delegate shows a one-line notice instead, and `/agents use` brings the result in.
+When agents finish, their results are posted to the conversation and Pi takes a turn, even if you've sent follow-up messages. If you've navigated to a branch that doesn't contain the launch point, Delegate holds the result instead; `/agents use` brings it into the current branch. Agent runs belong to their original session, so return there to access them after switching sessions.
 
 Results in the conversation are capped at 32 KB. The full result, each agent's session, and any patches are under `~/.pi/agent/delegate-runs/`.
 

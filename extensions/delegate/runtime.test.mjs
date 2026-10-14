@@ -180,6 +180,31 @@ test("starts a child without waiting and delivers its final answer once", async 
   assert.equal(deliveries.length, 1);
 });
 
+test("delivers a child completion after follow-up input on the same parent branch", async () => {
+  const current = { sessionId: "parent-1", inputGeneration: 2, branchIds: ["leaf-1"] };
+  const sent = [];
+  const delivery = createParentDelivery({
+    current: () => current,
+    send: (content) => sent.push(content),
+  });
+  const { runtime, children, repository } = runtimeFixture({
+    deliver: (run, view) => delivery.deliver(run, view),
+  });
+  const handle = await runtime.start(startInput());
+  await settle();
+
+  current.inputGeneration++;
+  current.branchIds.push("follow-up-leaf");
+  children.launches[0].done.resolve(success("Review complete."));
+  await settle();
+
+  assert.equal(runtime.get(handle.runId).children[0].state, "completed");
+  assert.equal(runtime.get(handle.runId).delivery.state, "delivered");
+  assert.equal(repository.records.get(handle.runId).delivery.state, "delivered");
+  assert.equal(sent.length, 1);
+  assert.match(sent[0], /Review complete/);
+});
+
 test("coalesces duplicate streaming activity while preserving a liveness heartbeat", async () => {
   let now = Date.UTC(2026, 0, 1);
   const repository = memoryRepository();

@@ -97,10 +97,6 @@ export function createParentDelivery(options: ParentDeliveryOptions): ParentDeli
 			options.onHeld?.(run, "user_intervened", metadata);
 			return "held:user_intervened";
 		}
-		if (current.inputGeneration !== run.parent.inputGeneration) {
-			options.onHeld?.(run, "user_intervened", metadata);
-			return "held:user_intervened";
-		}
 		options.send(content, view, metadata);
 		return "delivered";
 	};
